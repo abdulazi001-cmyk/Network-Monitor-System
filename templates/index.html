@@ -2,98 +2,59 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NetGuard | نظام مراقبة الشبكة</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <title>NetGuard - الحل المبتكر لمراقبة الشبكة</title>
     <style>
-        :root { --primary: #00d4ff; --bg: #0a0e1a; --card: #162032; --text: #e2eaf6; }
-        body { background: var(--bg); color: var(--text); font-family: 'Cairo', sans-serif; margin: 0; padding: 0; }
-        .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
-        
-        /* الهيدر */
-        header { display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid #1e3050; }
-        .btn-scan { background: linear-gradient(135deg, #0066ff, var(--primary)); color: white; border: none; padding: 10px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; }
-
-        /* قسم الخدمات الملموسة */
-        .section-title { border-right: 4px solid var(--primary); padding-right: 15px; margin-top: 40px; }
-        .services-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px; }
-        .service-card { background: var(--card); padding: 20px; border-radius: 12px; border: 1px solid #1e3050; }
-        .service-card h3 { color: var(--primary); margin-top: 0; }
-
-        /* خطوات العمل */
-        .work-steps { background: #0d1525; padding: 30px; border-radius: 15px; margin-top: 40px; }
-        .step { display: flex; align-items: center; gap: 20px; margin-bottom: 20px; }
-        .step-num { background: var(--primary); color: #000; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0; }
-
-        /* تيرمينال النتائج */
-        .terminal { background: #000; color: #00ff88; padding: 20px; border-radius: 10px; font-family: monospace; margin-top: 30px; border: 1px solid #333; min-height: 150px; }
+        :root { --accent: #00f2ff; --bg: #050a15; --card: #0d1626; }
+        body { background: var(--bg); color: #fff; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; }
+        .hero { height: 60vh; display: flex; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle at center, #102a4d 0%, var(--bg) 70%); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; padding: 40px; }
+        .feature { background: var(--card); padding: 30px; border-radius: 15px; border-top: 3px solid var(--accent); }
+        .steps-container { padding: 40px; background: #080f1c; }
+        .step-item { display: flex; align-items: center; gap: 20px; margin-bottom: 30px; }
+        .num { background: var(--accent); color: #000; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <header>
-        <div class="logo">🛡️ <strong>NETGUARD</strong></div>
-        <button class="btn-scan" onclick="startScan()">🔍 ابدأ فحص الشبكة الآن</button>
-    </header>
+    <section class="hero">
+        <h1>NetGuard 🛡️</h1>
+        <p>نظامك الذكي لمراقبة الشبكة في منطقة جازان - النسخة السحابية</p>
+        <div style="margin-top: 20px;">
+            <a href="#services" style="background: var(--accent); color: #000; padding: 12px 30px; text-decoration: none; border-radius: 25px; font-weight: bold;">اكتشف الخدمات</a>
+        </div>
+    </section>
 
-    <h2 class="section-title">الخدمات التي يقدمها النظام</h2>
-    <div class="services-grid">
-        <div class="service-card">
-            <h3>📡 كشف المتسللين</h3>
-            <p>يقوم النظام بفحص كل زاوية في شبكتك لاكتشاف أي جهاز غريب يحاول الاتصال بدون إذن.</p>
+    <section id="services" class="grid">
+        <div class="feature">
+            <h3>📡 المسح الشامل</h3>
+            <p>استخدام تقنيات ARP المتقدمة لاكتشاف كل كائن متصل بالشبكة في ثوانٍ.</p>
         </div>
-        <div class="service-card">
-            <h3>✅ إدارة الموثوقية</h3>
-            <p>تستطيع تسجيل أجهزتك (جوالك، لابتوبك) كأجهزة آمنة ليتم تجاهلها في التنبيهات القادمة.</p>
+        <div class="feature">
+            <h3>🔐 حماية الهوية</h3>
+            <p>مطابقة عناوين الـ MAC مع القائمة البيضاء لضمان عدم دخول أي متسلل.</p>
         </div>
-        <div class="service-card">
-            <h3>🔔 سجل التنبيهات</h3>
-            <p>يتم الاحتفاظ بجميع عمليات الدخول المشبوهة في ملف سجل (Alerts Log) للرجوع إليه لاحقاً.</p>
+        <div class="feature">
+            <h3>📈 تقارير حية</h3>
+            <p>عرض إحصائيات فورية عن حالة الأجهزة الموثوقة وغير المعروفة.</p>
         </div>
-    </div>
+    </section>
 
-    <div class="work-steps">
-        <h2 class="section-title">كيف تتم عملية المراقبة؟</h2>
+    <section class="steps-container">
+        <h2>آلية عمل النظام (خلف الكواليس)</h2>
         
-        <div class="step">
-            <div class="step-num">1</div>
-            <p><strong>الفحص (Scanning):</strong> يرسل النظام "نداءً" لجميع الأجهزة المتصلة بالراوتر حالياً.</p>
+        <div class="step-item">
+            <div class="num">1</div>
+            <div><strong>بث الإشارة:</strong> يرسل النظام حزم استعلام لجميع الأجهزة المحتملة.</div>
         </div>
-        <div class="step">
-            <div class="step-num">2</div>
-            <p><strong>التحقق (Verification):</strong> يقارن النظام هوية الجهاز (MAC Address) بالقائمة الموثوقة لديك.</p>
+        <div class="step-item">
+            <div class="num">2</div>
+            <div><strong>جمع البيانات:</strong> يتم استقبال ردود الأجهزة واستخراج عناوين الـ IP والـ MAC.</div>
         </div>
-        <div class="step">
-            <div class="step-num">3</div>
-            <p><strong>التنبيه (Alerting):</strong> في حال وجود جهاز غير مسجل، يتم إنشاء تنبيه فوري وحفظه في النظام[cite: 1].</p>
+        <div class="step-item">
+            <div class="num">3</div>
+            <div><strong>الفرز الذكي:</strong> يقارن النظام البيانات بملف whitelist.json المخزن سحابياً.</div>
         </div>
-    </div>
-
-    <h2 class="section-title">نتائج الفحص المباشر</h2>
-    <div class="terminal" id="results">
-        بانتظار بدء الفحص... اضغط على الزر في الأعلى لرؤية الأجهزة.
-    </div>
-</div>
-
-<script>
-    async function startScan() {
-        const resDiv = document.getElementById('results');
-        resDiv.innerHTML = "جاري الاتصال بالشبكة وفحص الأجهزة... يرجى الانتظار...";
-        
-        try {
-            const response = await fetch('/api/scan', { method: 'POST' });
-            const data = await response.json();
-            
-            resDiv.innerHTML = `تم العثور على (${data.devices.length}) أجهزة متصلة:<br><br>`;
-            data.devices.forEach(d => {
-                resDiv.innerHTML += `> IP: ${d.ip} | MAC: ${d.mac} | الحالة: ${d.trusted ? '✅ موثوق' : '⚠️ غير معروف'}<br>`;
-            });
-        } catch (e) {
-            resDiv.innerHTML = "❌ خطأ: تأكد من تشغيل ملف app.py بصلاحيات المسؤول (Admin).";
-        }
-    }
-</script>
+    </section>
 
 </body>
 </html>
