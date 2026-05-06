@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نظام مراقبة الشبكة</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0a0e1a;
+    --surface:   #111827;
+    --card:      #162032;
+    --border:    #1e3050;
+    --accent:    #00d4ff;
+    --accent2:   #0066ff;
+    --green:     #00e676;
+    --red:       #ff3d71;
+    --yellow:    #ffb300;
+    --text:      #e2eaf6;
+    --muted:     #6b7f9e;
+    --font:      'IBM Plex Sans Arabic', sans-serif;
+    --mono:      'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse 80% 40% at 50% 0%, #0066ff18 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 90% 50%, #00d4ff0a 0%, transparent 60%);
+  }
+
+  /* ── Header ── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+    border-bottom: 1px solid var(--border);
+    background: #0d1525cc;
+    backdrop-filter: blur(12px);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .logo {
+    display: flex; align-items: center; gap: .75rem;
+  }
+  .logo-icon {
+    width: 38px; height: 38px;
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem;
+  }
+  .logo-text { font-size: 1.1rem; font-weight: 700; }
+  .logo-sub  { font-size: .7rem; color: var(--muted); }
+
+  .header-right { display: flex; align-items: center; gap: 1rem; }
+  .badge-alert {
+    background: var(--red);
+    color: #fff;
+    font-size: .7rem;
+    font-weight: 700;
+    padding: .15rem .45rem;
+    border-radius: 999px;
+    min-width: 20px;
+    text-align: center;
+    display: none;
+  }
+  .badge-alert.show { display: inline-block; }
+
+  .scan-btn {
+    background: linear-gradient(135deg, var(--accent2), var(--accent));
+    color: #fff;
+    border: none;
+    padding: .55rem 1.4rem;
+    border-radius: 8px;
+    font-family: var(--font);
+    font-size: .9rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex; align-items: center; gap: .5rem;
+    transition: opacity .2s, transform .1s;
+  }
+  .scan-btn:hover { opacity: .9; }
+  .scan-btn:active { transform: scale(.97); }
+  .scan-btn:disabled { opacity: .5; cursor: not-allowed; }
+  .spin { animation: spin 1s linear infinite; display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── Main layout ── */
+  main { max-width: 1300px; margin: 0 auto; padding: 2rem; }
+
+  /* ── Stats row ── */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.2rem 1.4rem;
+    display: flex; align-items: center; gap: 1rem;
+    transition: border-color .3s;
+  }
+  .stat-card:hover { border-color: var(--accent2); }
+  .stat-icon {
+    font-size: 1.8rem;
+    width: 50px; height: 50px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .stat-icon.blue   { background: #0066ff22; }
+  .stat-icon.green  { background: #00e67622; }
+  .stat-icon.red    { background: #ff3d7122; }
+  .stat-icon.yellow { background: #ffb30022; }
+  .stat-val  { font-size: 2rem; font-weight: 700; line-height: 1; }
+  .stat-lbl  { font-size: .78rem; color: var(--muted); margin-top: .2rem; }
+
+  /* ── Network input ── */
+  .network-bar {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.4rem;
+    display: flex; align-items: center; gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  .network-bar label { color: var(--muted); font-size: .85rem; white-space: nowrap; }
+  .network-bar input {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: .9rem;
+    padding: .5rem .9rem;
+    border-radius: 8px;
+    flex: 1; min-width: 180px;
+    outline: none;
+    transition: border-color .2s;
+  }
+  .network-bar input:focus { border-color: var(--accent); }
+  .info-chip {
+    font-size: .75rem; color: var(--muted);
+    background: #ffffff08;
+    border: 1px solid var(--border);
+    padding: .3rem .7rem;
+    border-radius: 6px;
+  }
+
+  /* ── Tabs ── */
+  .tabs { display: flex; gap: .5rem; margin-bottom: 1.5rem; }
+  .tab {
+    padding: .5rem 1.2rem;
+    border-radius: 8px;
+    font-family: var(--font);
+    font-size: .88rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--muted);
+    transition: all .2s;
+  }
+  .tab.active {
+    background: var(--accent2);
+    border-color: var(--accent2);
+    color: #fff;
+  }
+  .tab:hover:not(.active) { border-color: var(--accent2); color: var(--text); }
+
+  /* ── Table ── */
+  .table-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .table-head {
+    padding: 1rem 1.4rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .table-title { font-weight: 600; font-size: .95rem; }
+  .table-meta  { font-size: .78rem; color: var(--muted); }
+
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    text-align: right;
+    padding: .8rem 1.2rem;
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    border-bottom: 1px solid var(--border);
+    background: #0d1525;
+  }
+  tbody tr {
+    border-bottom: 1px solid #1a2840;
+    transition: background .15s;
+  }
+  tbody tr:hover { background: #1a2a40; }
+  tbody tr:last-child { border-bottom: none; }
+  td {
+    padding: .9rem 1.2rem;
+    font-size: .88rem;
+  }
+  .mono { font-family: var(--mono); font-size: .82rem; }
+
+  .status-badge {
+    display: inline-flex; align-items: center; gap: .35rem;
+    padding: .2rem .7rem;
+    border-radius: 6px;
+    font-size: .75rem;
+    font-weight: 600;
+  }
+  .status-badge.trusted {
+    background: #00e67618;
+    color: var(--green);
+    border: 1px solid #00e67630;
+  }
+  .status-badge.unknown {
+    background: #ff3d7118;
+    color: var(--red);
+    border: 1px solid #ff3d7130;
+  }
+  .dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: currentColor;
+  }
+
+  .action-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: .25rem .65rem;
+    border-radius: 6px;
+    font-size: .75rem;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: all .2s;
+    margin-inline-start: .3rem;
+  }
+  .action-btn:hover { border-color: var(--accent2); color: var(--accent); }
+  .action-btn.danger:hover { border-color: var(--red); color: var(--red); }
+
+  /* ── Alerts panel ── */
+  .alert-item {
+    display: flex; align-items: flex-start; gap: 1rem;
+    padding: 1rem 1.4rem;
+    border-bottom: 1px solid var(--border);
+    transition: background .15s;
+  }
+  .alert-item:hover { background: #1a2a40; }
+  .alert-item:last-child { border-bottom: none; }
+  .alert-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: #ff3d7118;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0;
+  }
+  .alert-msg  { font-size: .88rem; margin-bottom: .2rem; }
+  .alert-time { font-size: .75rem; color: var(--muted); font-family: var(--mono); }
+  .alert-ack  { margin-inline-start: auto; }
+  .alert-item.acked { opacity: .45; }
+
+  /* ── Whitelist panel ── */
+  .add-wl-bar {
+    display: flex; gap: .7rem; padding: 1rem 1.4rem;
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .add-wl-bar input {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: .88rem;
+    padding: .45rem .8rem;
+    border-radius: 8px;
+    flex: 1; min-width: 140px; outline: none;
+    transition: border-color .2s;
+  }
+  .add-wl-bar input:focus { border-color: var(--accent); }
+  .add-wl-bar input::placeholder { color: var(--muted); }
+  .add-btn {
+    background: var(--green);
+    color: #000;
+    border: none;
+    padding: .45rem 1rem;
+    border-radius: 8px;
+    font-family: var(--font);
+    font-weight: 700;
+    font-size: .85rem;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .add-btn:hover { opacity: .85; }
+
+  /* ── Empty state ── */
+  .empty {
+    text-align: center;
+    padding: 3rem;
+    color: var(--muted);
+  }
+  .empty-icon { font-size: 3rem; margin-bottom: .75rem; }
+  .empty-title { font-weight: 600; margin-bottom: .35rem; }
+
+  /* ── Scan pulse ── */
+  @keyframes pulse-row {
+    0%   { background: #00d4ff12; }
+    100% { background: transparent; }
+  }
+  .new-row { animation: pulse-row .8s ease-out; }
+
+  /* ── Toast ── */
+  #toast {
+    position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: .7rem 1.4rem;
+    font-size: .88rem;
+    display: none;
+    z-index: 9999;
+    box-shadow: 0 8px 30px #00000080;
+  }
+  #toast.show { display: block; animation: fadeUp .3s ease; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+
+  /* responsive */
+  @media (max-width: 768px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    main { padding: 1rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">🛡️</div>
+    <div>
+      <div class="logo-text">مراقبة الشبكة</div>
+      <div class="logo-sub">Network Monitor</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <span class="badge-alert" id="alertBadge">0</span>
+    <button class="scan-btn" id="scanBtn" onclick="doScan()">
+      <span id="scanIcon">🔍</span> فحص الشبكة
+    </button>
+  </div>
+</header>
+
+<main>
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-icon blue">📡</div>
+      <div>
+        <div class="stat-val" id="totalCount">—</div>
+        <div class="stat-lbl">إجمالي الأجهزة</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon green">✅</div>
+      <div>
+        <div class="stat-val" id="trustedCount">—</div>
+        <div class="stat-lbl">أجهزة موثوقة</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon red">⚠️</div>
+      <div>
+        <div class="stat-val" id="unknownCount">—</div>
+        <div class="stat-lbl">أجهزة غير معروفة</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon yellow">🔔</div>
+      <div>
+        <div class="stat-val" id="alertCount">—</div>
+        <div class="stat-lbl">تنبيهات غير مقروءة</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Network bar -->
+  <div class="network-bar">
+    <label>نطاق الشبكة:</label>
+    <input type="text" id="networkInput" placeholder="192.168.1.0/24" dir="ltr">
+    <span class="info-chip" id="localIpChip">جاري التحميل…</span>
+    <span class="info-chip" id="methodChip">—</span>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('devices')">📡 الأجهزة</button>
+    <button class="tab" onclick="showTab('whitelist')">✅ القائمة الموثوقة</button>
+    <button class="tab" onclick="showTab('alerts')">🔔 التنبيهات</button>
+  </div>
+
+  <!-- Devices Tab -->
+  <div id="tab-devices">
+    <div class="table-wrap">
+      <div class="table-head">
+        <span class="table-title">الأجهزة المكتشفة</span>
+        <span class="table-meta" id="scanTime">لم يتم الفحص بعد</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>عنوان IP</th>
+            <th>عنوان MAC</th>
+            <th>الحالة</th>
+            <th>التسمية</th>
+            <th>إجراء</th>
+          </tr>
+        </thead>
+        <tbody id="devicesBody">
+          <tr><td colspan="6"><div class="empty"><div class="empty-icon">🔍</div><div class="empty-title">اضغط "فحص الشبكة" للبدء</div></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Whitelist Tab -->
+  <div id="tab-whitelist" style="display:none">
+    <div class="table-wrap">
+      <div class="add-wl-bar">
+        <input type="text" id="wlMac" placeholder="AA:BB:CC:DD:EE:FF" dir="ltr">
+        <input type="text" id="wlLabel" placeholder="اسم الجهاز (اختياري)">
+        <button class="add-btn" onclick="addToWhitelist()">+ إضافة</button>
+      </div>
+      <table>
+        <thead>
+          <tr><th>#</th><th>عنوان MAC</th><th>التسمية</th><th>حذف</th></tr>
+        </thead>
+        <tbody id="whitelistBody">
+          <tr><td colspan="4"><div class="empty"><div class="empty-icon">📋</div><div class="empty-title">القائمة فارغة</div></div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Alerts Tab -->
+  <div id="tab-alerts" style="display:none">
+    <div class="table-wrap">
+      <div class="table-head">
+        <span class="table-title">سجل التنبيهات</span>
+        <span class="table-meta" id="alertsMeta">—</span>
+      </div>
+      <div id="alertsList">
+        <div class="empty"><div class="empty-icon">🔔</div><div class="empty-title">لا توجد تنبيهات</div></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div id="toast"></div>
+
+<script>
+  let lastDevices = [];
+
+  // ── Init ──────────────────────────────────────────────
+  async function init() {
+    const r = await fetch('/api/network-info');
+    const d = await r.json();
+    document.getElementById('networkInput').value = d.default_network;
+    document.getElementById('localIpChip').textContent = `IP: ${d.local_ip}`;
+    document.getElementById('methodChip').textContent =
+      d.scapy_available ? 'Scapy ✔' : 'ARP Table (no root)';
+    await refreshAlertBadge();
+    await loadWhitelist();
+  }
+
+  // ── Tabs ──────────────────────────────────────────────
+  function showTab(name) {
+    ['devices','whitelist','alerts'].forEach(t => {
+      document.getElementById(`tab-${t}`).style.display = t === name ? '' : 'none';
+    });
+    document.querySelectorAll('.tab').forEach((btn, i) => {
+      btn.classList.toggle('active', ['devices','whitelist','alerts'][i] === name);
+    });
+    if (name === 'alerts') loadAlerts();
+    if (name === 'whitelist') loadWhitelist();
+  }
+
+  // ── Scan ──────────────────────────────────────────────
+  async function doScan() {
+    const btn  = document.getElementById('scanBtn');
+    const icon = document.getElementById('scanIcon');
+    btn.disabled = true;
+    icon.innerHTML = '<span class="spin">⟳</span>';
+
+    try {
+      const network = document.getElementById('networkInput').value.trim() || null;
+      const res  = await fetch('/api/scan', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ network })
+      });
+      const data = await res.json();
+      lastDevices = data.devices || [];
+      renderDevices(lastDevices, data);
+      await refreshAlertBadge();
+      if (data.new_alerts > 0)
+        toast(`⚠️ تم اكتشاف ${data.new_alerts} جهاز غير معروف!`);
+    } catch(e) {
+      toast('❌ فشل الاتصال بالخادم');
+    } finally {
+      btn.disabled = false;
+      icon.textContent = '🔍';
+    }
+  }
+
+  function renderDevices(devices, meta) {
+    const tbody = document.getElementById('devicesBody');
+    document.getElementById('scanTime').textContent = `آخر فحص: ${meta.scanned_at}`;
+    document.getElementById('totalCount').textContent   = devices.length;
+    document.getElementById('trustedCount').textContent = devices.filter(d=>d.trusted).length;
+    document.getElementById('unknownCount').textContent = devices.filter(d=>!d.trusted).length;
+
+    if (!devices.length) {
+      tbody.innerHTML = `<tr><td colspan="6"><div class="empty"><div class="empty-icon">🌐</div><div class="empty-title">لم يتم اكتشاف أي أجهزة</div></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = devices.map((d, i) => `
+      <tr class="new-row">
+        <td class="mono">${i+1}</td>
+        <td class="mono">${d.ip}</td>
+        <td class="mono">${d.mac}</td>
+        <td>
+          <span class="status-badge ${d.trusted ? 'trusted' : 'unknown'}">
+            <span class="dot"></span>${d.trusted ? 'موثوق' : 'غير معروف'}
+          </span>
+        </td>
+        <td>${d.label || '<span style="color:var(--muted)">—</span>'}</td>
+        <td>
+          ${!d.trusted
+            ? `<button class="action-btn" onclick="quickTrust('${d.mac}','${d.ip}')">ثقة ✔</button>`
+            : `<button class="action-btn danger" onclick="removeTrust('${d.mac}')">إزالة</button>`
+          }
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  // ── Whitelist ──────────────────────────────────────────
+  async function loadWhitelist() {
+    const res  = await fetch('/api/whitelist');
+    const list = await res.json();
+    const tbody = document.getElementById('whitelistBody');
+    if (!list.length) {
+      tbody.innerHTML = `<tr><td colspan="4"><div class="empty"><div class="empty-icon">📋</div><div class="empty-title">القائمة فارغة</div></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = list.map((d, i) => `
+      <tr>
+        <td class="mono">${i+1}</td>
+        <td class="mono">${d.mac}</td>
+        <td>${d.label || '—'}</td>
+        <td><button class="action-btn danger" onclick="removeTrust('${d.mac}')">حذف</button></td>
+      </tr>
+    `).join('');
+  }
+
+  async function addToWhitelist() {
+    const mac   = document.getElementById('wlMac').value.trim();
+    const label = document.getElementById('wlLabel').value.trim();
+    if (!mac) { toast('أدخل عنوان MAC'); return; }
+    await fetch('/api/whitelist', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ mac, label })
+    });
+    document.getElementById('wlMac').value = '';
+    document.getElementById('wlLabel').value = '';
+    await loadWhitelist();
+    toast('✅ تم إضافة الجهاز');
+  }
+
+  async function quickTrust(mac, ip) {
+    await fetch('/api/whitelist', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ mac, label: ip })
+    });
+    toast(`✅ تم إضافة ${mac} للقائمة الموثوقة`);
+    if (lastDevices.length) renderDevices(
+      lastDevices.map(d => d.mac === mac ? {...d, trusted: true, label: ip} : d),
+      { scanned_at: document.getElementById('scanTime').textContent.replace('آخر فحص: ', '') }
+    );
+    lastDevices = lastDevices.map(d => d.mac === mac ? {...d, trusted: true, label: ip} : d);
+  }
+
+  async function removeTrust(mac) {
+    await fetch(`/api/whitelist/${mac}`, { method: 'DELETE' });
+    await loadWhitelist();
+    toast('🗑️ تم إزالة الجهاز من القائمة');
+  }
+
+  // ── Alerts ────────────────────────────────────────────
+  async function loadAlerts() {
+    const res    = await fetch('/api/alerts');
+    const alerts = await res.json();
+    const el = document.getElementById('alertsList');
+    document.getElementById('alertsMeta').textContent =
+      `${alerts.length} تنبيه`;
+    if (!alerts.length) {
+      el.innerHTML = `<div class="empty"><div class="empty-icon">🔔</div><div class="empty-title">لا توجد تنبيهات</div></div>`;
+      return;
+    }
+    el.innerHTML = alerts.map(a => `
+      <div class="alert-item ${a.acknowledged ? 'acked' : ''}" id="alert-${a.id}">
+        <div class="alert-icon">⚠️</div>
+        <div>
+          <div class="alert-msg">${a.message}</div>
+          <div class="alert-time">${a.timestamp}</div>
+        </div>
+        ${!a.acknowledged
+          ? `<button class="action-btn alert-ack" onclick="ackAlert(${a.id})">تأكيد</button>`
+          : '<span style="color:var(--muted);font-size:.75rem;margin-inline-start:auto">✔ مقروء</span>'
+        }
+      </div>
+    `).join('');
+    document.getElementById('alertCount').textContent =
+      alerts.filter(a => !a.acknowledged).length || '0';
+  }
+
+  async function ackAlert(id) {
+    await fetch(`/api/alerts/${id}/ack`, { method: 'POST' });
+    await loadAlerts();
+    await refreshAlertBadge();
+  }
+
+  async function refreshAlertBadge() {
+    const r = await fetch('/api/alerts/unread');
+    const { count } = await r.json();
+    const badge = document.getElementById('alertBadge');
+    const countEl = document.getElementById('alertCount');
+    badge.textContent = count;
+    badge.classList.toggle('show', count > 0);
+    if (countEl) countEl.textContent = count;
+  }
+
+  // ── Toast ─────────────────────────────────────────────
+  let toastTimer;
+  function toast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'show';
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.className = '', 3000);
+  }
+
+  init();
+</script>
+</body>
+</html>
